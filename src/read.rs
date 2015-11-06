@@ -8,7 +8,7 @@ use std::io::BufReader;
 use std::fs::File;
 
 use super::env::*;//{Expression, ExpressionStream};
-use super::eval::{eval};
+// use super::eval::{eval};
 use super::types::*;
 
 
@@ -63,8 +63,14 @@ fn tokenize(stream: Vec<String>) -> TokenStream {
             "(" => Type::OpenParen,
             ")" => Type::CloseParen,
             "nil" => Type::Nil,
+            // Not going to implement numbers quite yet sorry
             "3" => {
-                Type::Number(f64::from_str(token))
+                Type::Number(
+                    match f64::from_str(token.as_ref()) {
+                        Err(why) => panic!(why),
+                        Ok(num) => num
+                    }
+                )
             }
             _   => Type::Atom(token.to_string()),
         })
@@ -72,19 +78,3 @@ fn tokenize(stream: Vec<String>) -> TokenStream {
 
     return final_stream
 }
-
-// fn is_close_paren(token: String) -> bool {
-//
-// }
-//
-// fn is_nil(token: String) -> bool {
-//
-// }
-//
-// fn is_number(token: str) -> bool {
-//
-// }
-//
-// fn is_atom(token: String) -> bool {
-//
-// }

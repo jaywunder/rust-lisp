@@ -2,16 +2,28 @@
 use std::collections::HashMap;
 use super::types::*;
 
-pub struct Env {
-    bindings: HashMap<String, Expression>,
+pub struct Env<'a> {
+    bindings: HashMap<Atom, &'a mut ExpressionStream>,
+    intrinsics: HashMap<Atom, ExpressionStream>,
 }
 
-impl Env {
-    fn new() -> Env {
-        Env { bindings: HashMap::new() }
+impl<'a> Env<'a> {
+    pub fn new() -> Env<'a> {
+        Env {
+            bindings: HashMap::new(),
+            intrinsics: HashMap::new(),
+        }
     }
 
-    fn set() {
+    fn set(&mut self, atom: Atom, stream: &'a mut ExpressionStream) {
+
+        self.bindings.insert(atom, stream);
+
+    }
+
+    fn get(&mut self, atom: &Atom) -> Option<&&mut ExpressionStream> {
+
+        self.bindings.get(atom)
 
     }
 }

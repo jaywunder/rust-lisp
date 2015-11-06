@@ -6,6 +6,6 @@ mod read;
 
 fn main() {
 
-    let tokens = read::parse("/Users/JacobWunder/test.txt");
+    let _tokens = read::parse("/Users/JacobWunder/test.txt");
 
 }
