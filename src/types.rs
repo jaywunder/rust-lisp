@@ -1,10 +1,7 @@
 #![allow(dead_code)]
-// use std::collections::HashMap;
 
-// extern crate core;
+use std::fmt;
 
-// use std::error::Error;
-// use std::hash::Hash;
 
 pub type Atom = String;
 
@@ -23,6 +20,20 @@ pub enum Type {
         func: Atom,
         args: ExpressionStream,
     },
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        #![allow(unused_variables)]
+        return match self {
+            &Type::OpenParen => write!(f, "("),
+            &Type::CloseParen => write!(f, ")"),
+            &Type::Nil => write!(f, "nil"),
+            &Type::Number(val) => write!(f, "{}", val),
+            &Type::Atom(ref val) => write!(f, "{}", val),
+            &Type::Expression{ref func, ref args} => write!(f, "<{}>", func)
+        }
+    }
 }
 
 // impl PartialEq for Type {

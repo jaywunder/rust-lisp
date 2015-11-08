@@ -1,24 +1,27 @@
-#![allow(unused_imports)]
+#![allow(unused_imports, unused_variables, dead_code, unused_mut)]
 use std::convert::AsRef;
 use std::error::Error;
 use std::io::prelude::*;
 use std::str::FromStr;
+use std::ptr;
 
 use std::io::BufReader;
 use std::fs::File;
+use std::iter::Iterator;
 
-use super::env::*;//{Expression, ExpressionStream};
-// use super::eval::{eval};
+use super::env::*;
 use super::types::*;
 
 
-pub fn parse(path: &str) -> TokenStream {
+pub fn parse(path: &str) -> Env {
 
     let buf = read_file(path);
 
     let stream = split(buf);
 
-    return tokenize(stream);
+    let tokens = tokenize(stream);
+
+    return into_env(tokens);
 }
 
 fn read_file(path: &str) -> BufReader<File> {
@@ -77,4 +80,59 @@ fn tokenize(stream: Vec<String>) -> TokenStream {
     }
 
     return final_stream
+}
+
+fn into_env(stream: TokenStream) -> Env {
+
+    let mut env: Env = Env::new();
+
+    return env
+}
+
+fn parse_atom (token: &Type) -> &Atom {
+    match token {
+        &Type::Atom(ref atom) => {
+            return atom;
+        },
+        _ => {
+            panic!("{} is not an atom", token)
+        }
+    }
+}
+
+fn parse_expression(env: &mut Env, stream: &TokenStream, i: usize) -> Type {
+
+    for mut i in 0..stream.len() {
+
+        if let Some(token) = stream.get(i) {
+            match token {
+                &Type::OpenParen => {
+
+                    let key: &Atom = if let Some(atom) = stream.get(i + 1) {
+                        parse_atom(atom)
+                    } else {
+                        panic!("got unexpected end of file");
+                    };
+
+                    let value: ExpressionStream = if let Some(atom) = stream.get(i) {
+                        Vec::new()
+                    } else {
+                        panic!("got unexpected end of file")
+                    };
+
+                    env.set(key.clone(), value);
+                }
+                _ => {},
+            }
+
+        } else {
+            panic!("wtf dude?!?! the program ended unexpectedly.");
+        };
+    }
+
+    Type::Expression {
+        func: "bleh bleh".to_string(),
+        args: Vec::new()
+    }
+
 }
