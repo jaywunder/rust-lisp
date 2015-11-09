@@ -1,13 +1,11 @@
-#![allow(unused_imports, unused_variables, dead_code, unused_mut)]
+#![allow(unused_imports, unused_variables, dead_code, unused_mut, unused_assignments)]
 use std::convert::AsRef;
 use std::error::Error;
 use std::io::prelude::*;
 use std::str::FromStr;
-use std::ptr;
 
 use std::io::BufReader;
 use std::fs::File;
-use std::iter::Iterator;
 
 use super::env::*;
 use super::types::*;
@@ -19,9 +17,9 @@ pub fn parse(path: &str) -> Env {
 
     let stream = split(buf);
 
-    let tokens = tokenize(stream);
+    let mut tokens = tokenize(stream);
 
-    return into_env(tokens);
+    return into_env(&mut tokens);
 }
 
 fn read_file(path: &str) -> BufReader<File> {
@@ -82,57 +80,34 @@ fn tokenize(stream: Vec<String>) -> TokenStream {
     return final_stream
 }
 
-fn into_env(stream: TokenStream) -> Env {
+fn into_env(stream: &mut TokenStream) -> Env {
 
     let mut env: Env = Env::new();
+
+    env.expression_stream = into_expression_tree(stream);
 
     return env
 }
 
-fn parse_atom (token: &Type) -> &Atom {
-    match token {
-        &Type::Atom(ref atom) => {
-            return atom;
-        },
-        _ => {
-            panic!("{} is not an atom", token)
-        }
-    }
-}
+fn into_expression_tree(stream_in: &mut TokenStream) -> Type {
 
-fn parse_expression(env: &mut Env, stream: &TokenStream, i: usize) -> Type {
+    let mut expression: ExpressionStream = Vec::new();
 
-    for mut i in 0..stream.len() {
-
-        if let Some(token) = stream.get(i) {
-            match token {
-                &Type::OpenParen => {
-
-                    let key: &Atom = if let Some(atom) = stream.get(i + 1) {
-                        parse_atom(atom)
-                    } else {
-                        panic!("got unexpected end of file");
-                    };
-
-                    let value: ExpressionStream = if let Some(atom) = stream.get(i) {
-                        Vec::new()
-                    } else {
-                        panic!("got unexpected end of file")
-                    };
-
-                    env.set(key.clone(), value);
-                }
-                _ => {},
+    while let Some(token) = stream_in.pop() {
+        match token {
+            Type::OpenParen => {
+                return into_expression_tree(&mut *stream_in)
             }
 
-        } else {
-            panic!("wtf dude?!?! the program ended unexpectedly.");
-        };
+            Type::CloseParen => {
+                return Type::Expression(expression)
+            }
+
+            _ => {
+                expression.push(token)
+            }
+        }
     }
 
-    Type::Expression {
-        func: "bleh bleh".to_string(),
-        args: Vec::new()
-    }
-
+    Type::Expression(expression)
 }

@@ -16,10 +16,7 @@ pub enum Type {
     Nil,
     Number(f64),
     Atom(Atom),
-    Expression {
-        func: Atom,
-        args: ExpressionStream,
-    },
+    Expression(ExpressionStream),
 }
 
 impl fmt::Display for Type {
@@ -31,7 +28,7 @@ impl fmt::Display for Type {
             &Type::Nil => write!(f, "nil"),
             &Type::Number(val) => write!(f, "{}", val),
             &Type::Atom(ref val) => write!(f, "{}", val),
-            &Type::Expression{ref func, ref args} => write!(f, "<{}>", func)
+            &Type::Expression(ref vec) => write!(f, "<{}>", vec[0])
         }
     }
 }

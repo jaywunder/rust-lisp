@@ -3,13 +3,15 @@ use std::collections::HashMap;
 use super::types::*;
 
 pub struct Env {
-    bindings: HashMap<Atom, ExpressionStream>,
-    intrinsics: HashMap<Atom, ExpressionStream>,
+    pub expression_stream: Type,
+    pub bindings: HashMap<Atom, ExpressionStream>,
+    pub intrinsics: HashMap<Atom, ExpressionStream>,
 }
 
 impl Env {
     pub fn new() -> Env {
         Env {
+            expression_stream: Type::Expression(Vec::new()),
             bindings: HashMap::new(),
             intrinsics: HashMap::new(),
         }
