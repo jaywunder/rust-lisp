@@ -16,9 +16,11 @@ pub enum Value {
     Number(f32),
     String(String),
     Function(Function),
+    Boolean(bool),
     Null,
 }
 
+#[derive(Clone)]
 pub enum Expression {
     // Block(Vec<Expression>),
     Symbol(Symbol),
@@ -61,6 +63,7 @@ impl fmt::Display for Value {
             &Number(ref n) => write!(f, "number[{}]", n),
             &String(ref s) => write!(f, "string[{}]", s),
             &Function(ref s) => write!(f, "function[something]"),
+            &Boolean(ref b) => write!(f, "boolean[{}]", b),
             &Null => write!(f, "[null]"),
         }
     }

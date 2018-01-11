@@ -20,6 +20,14 @@ named!(pub expr<Expression>,
             (Expression::Value(Value::Null))
         ) |
         do_parse!(
+            n: tag!("true") >>
+            (Expression::Value(Value::Boolean(true)))
+        ) |
+        do_parse!(
+            n: tag!("false") >>
+            (Expression::Value(Value::Boolean(false)))
+        ) |
+        do_parse!(
             n: number >>
             (Expression::Value(Value::Number(n)))
         ) |
