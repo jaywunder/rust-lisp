@@ -1,3 +1,4 @@
+use cactus::Cactus;
 use std::collections::HashMap;
 use ast::types::*;
 use eval::builtins::{
@@ -5,16 +6,6 @@ use eval::builtins::{
     static_functions::{ self, StaticFn },
     language_functions::{ self, LanguageFn }
 };
-
-
-
-
-
-
-
-
-
-
 
 pub struct Frame {
     pub scope: HashMap<Symbol, Value>,

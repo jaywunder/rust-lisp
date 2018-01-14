@@ -2,6 +2,7 @@
 #![allow(unused_macros)]
 #[macro_use]
 extern crate nom;
+extern crate cactus;
 
 mod ast;
 mod eval;
@@ -35,7 +36,6 @@ macro_rules! run_program {
 
 
 fn main() {
-
     println!("{}", DASHES);
 
     run_program!(b"(plus 2 2)");
