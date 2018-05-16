@@ -4,6 +4,7 @@ name = "rust-lisp"
 version = "0.1.0"
 
 [dependencies]
-nom = "^3.2"
+nom = "^4"
 cactus = "^1.0.0"
+colored = "1.6"
 # regex = "0.2.1"

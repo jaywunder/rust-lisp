@@ -50,7 +50,7 @@ pub fn eval<'a>(expr: Expression, stack: &'a mut CallStack) {
                     // println!("found dynamic function symbol {:?}", symbol);
 
                     func.call(arg_values)
-                    
+
                 }
 
                 else {
@@ -67,6 +67,4 @@ pub fn eval<'a>(expr: Expression, stack: &'a mut CallStack) {
     };
 
     stack.top().borrow_mut().returns = out;
-
-    // Value::Number(42 as f32)
 }
