@@ -40,3 +40,9 @@ impl Function {
         local_stack.pop_return()
     }
 }
+
+impl PartialEq for Function {
+    fn eq(&self, other: &Function) -> bool {
+        false // TODO: not this shit
+    }
+}

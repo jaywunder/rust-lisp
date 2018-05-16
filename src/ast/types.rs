@@ -11,7 +11,7 @@ use function::Function;
 pub type Symbol = String;
 pub type Program = Vec<Expression>;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Value {
     Number(f32),
     String(String),
