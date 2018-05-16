@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_must_use, dead_code)]
 use std::collections::HashMap;
 use ast::types::*;
 use eval::types::*;

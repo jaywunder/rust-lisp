@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use ast::types::*;
 use eval::types::*;
 
@@ -8,21 +9,27 @@ pub fn eval<'a>(expr: Expression, stack: &'a mut CallStack) {
     let out = match expr {
         Expression::Call(symbol, arguments) => {
 
-            if let Some(func) = stack.language_functions.remove(&symbol) {
+            // println!("calling: {:?}", symbol);
 
-                let symbol_clone = symbol.clone();
-                let value = func.call((arguments, stack));
+            if stack.env.borrow().language_functions.contains_key(&symbol) {
 
-                stack.language_functions.insert(symbol_clone, func);
+                // println!("hey in language functions");
 
-                value
+                let env_rc = Rc::clone(&stack.env);
+                let env = env_rc.borrow();
+                let func = env.language_functions.get(&symbol).as_ref().unwrap().clone();
+
+                func.call((arguments, stack))
 
             } else {
+
+                // println!("hey before evaluating arguments");
 
                 // evaluate all arguments
                 let mut arg_values = Vec::<Value>::new();
 
                 for sub_expr in arguments {
+                    // println!("argument {:?}", sub_expr);
 
                     eval(sub_expr, stack);
 
@@ -30,18 +37,25 @@ pub fn eval<'a>(expr: Expression, stack: &'a mut CallStack) {
 
                 };
 
-                if let Some(func) = stack.get_static_function(&symbol) {
+                // println!("evaluated arguments");
+
+                if let Some(func) = stack.env.borrow().static_functions.get(&symbol) {
+                    // println!("hey calling static function {:?}", symbol);
+
                     func.call((arg_values,))
                 }
 
                 // if the function is dynamic, call it
-                // else if let Value::Function(ref func) = stack.get_value(&symbol) {
-                //
-                //     // func.call(arg_values)
-                //     Value::Null // TODO: Change this
-                // }
+                else if let Value::Function(ref func) = stack.get_value(&symbol) {
+                    // println!("found dynamic function symbol {:?}", symbol);
 
-                else { Value::Null }
+                    func.call(arg_values)
+                    
+                }
+
+                else {
+                    // println!("uhhhhh");
+                    Value::Null }
             }
 
         },
@@ -52,7 +66,7 @@ pub fn eval<'a>(expr: Expression, stack: &'a mut CallStack) {
         _ => Value::Null
     };
 
-    stack.top().returns = out;
+    stack.top().borrow_mut().returns = out;
 
     // Value::Number(42 as f32)
 }

@@ -1,4 +1,4 @@
-#![allow(unused_imports, unused_must_use)]
+#![allow(unused_imports, unused_must_use, dead_code)]
 use nom::{IResult, digit, space, alpha, alphanumeric};
 
 use std::str;
@@ -8,6 +8,9 @@ use std::fmt;
 use std::fmt::Write;
 
 use types::*;
+
+named!(pub debug_expr<Expression>, dbg_dmp!(expr));
+named!(pub debug_program<Program>, dbg_dmp!(program));
 
 named!(pub program<Program>, fold_many0!(ws!(expr), Vec::new(), |mut acc: Program, item: Expression| {
     acc.push(item); acc
@@ -54,7 +57,7 @@ named!(pub expr<Expression>,
     )
 );
 
-named!(function_call<(Symbol, Vec<Expression>)>,do_parse!(
+named!(function_call<(Symbol, Vec<Expression>)>, do_parse!(
     tag!(&['(' as u8][..]) >>
     func: ws!(symbol) >>
     args: ws!(arguments) >>

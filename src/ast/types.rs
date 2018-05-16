@@ -1,4 +1,4 @@
-#![allow(unused_imports, unused_must_use)]
+#![allow(unused_imports, unused_must_use, dead_code)]
 use nom::{IResult, digit, space, alpha, alphanumeric};
 
 use std::str;
@@ -62,7 +62,7 @@ impl fmt::Display for Value {
         match self {
             &Number(ref n) => write!(f, "number[{}]", n),
             &String(ref s) => write!(f, "string[{}]", s),
-            &Function(ref s) => write!(f, "function[something]"),
+            &Function(ref _s) => write!(f, "function[something]"),
             &Boolean(ref b) => write!(f, "boolean[{}]", b),
             &Null => write!(f, "[null]"),
         }

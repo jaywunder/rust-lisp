@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use ast::function::Function;
 use ast::types::*;
 use eval::types::*;
 use eval;
@@ -17,19 +18,49 @@ pub fn init(scope: &mut HashMap<Symbol, Box<LanguageFn>>) {
 
                         eval::eval::eval(args[i+1].clone(), stack);
 
-                        let value = stack.pop_return().clone();
-                        stack.push_value(symbol.clone(), value)
+                        let value = stack.pop_return();
+                        stack.push_value(symbol.clone(), value);
+                        // stack.top().borrow_mut().scope.insert(symbol.clone(), value);
                     }
                     _ => return Value::Null,
                 }
             }
 
-            let i = stack.stack.len();
+            stack.push_frame();
 
             Value::Null
         }
     );
-    
+
+    scope.insert(
+        String::from("set"),
+        box | args, stack | -> Value {
+            stack.pop_return();
+
+            for i in (0..args.len()).step_by(2) {
+                match args[i] {
+                    Expression::Symbol(ref symbol) => {
+
+                        eval::eval::eval(args[i+1].clone(), stack);
+                        let value = stack.pop_return();
+
+                        for i in 0..stack.stack.len() {
+                            if stack.stack[i].borrow().scope.contains_key(symbol) {
+                                stack.stack[i].borrow_mut().scope.insert(symbol.clone(), value);
+                                break;
+                            }
+                        }
+                    }
+                    _ => return Value::Null,
+                }
+            }
+
+            stack.push_frame();
+
+            Value::Null
+        }
+    );
+
     scope.insert(
         String::from("if"),
         box | args, stack | -> Value {
@@ -54,32 +85,57 @@ pub fn init(scope: &mut HashMap<Symbol, Box<LanguageFn>>) {
             stack.pop_return()
         }
     );
-    
+
     scope.insert(
         String::from("do"),
         box | args, stack | -> Value {
+            use eval::eval::eval;
 
+            let mut value = Value::Null;
             for i in 0..args.len() {
-                eval::eval::eval(args[i].clone(), stack);
-                let value = stack.pop_return();
-                stack.top().returns = value;
+                eval(args[i].clone(), stack);
+                value = stack.pop_return();
+                // stack.top().borrow_mut().returns = value;
             }
 
-            stack.pop_return()
+            value
         }
     );
-    
+
     scope.insert(
         String::from("func"),
         box | args, stack | -> Value {
 
-            for i in 0..args.len() {
-                eval::eval::eval(args[i].clone(), stack);
-                let value = stack.pop_return();
-                stack.top().returns = value;
+            let mut func_body = args.clone();
+            stack.pop_return();
+
+            if let Expression::Symbol(symbol) = func_body.remove(0) {
+
+                if let Expression::Call(arg0, other_args) = func_body.remove(0) {
+                    let mut other_args = other_args.clone();
+                    other_args.insert(0, Expression::Symbol(arg0));
+
+                    let arguments: Vec<Symbol> = other_args
+                        .into_iter()
+                        .map(|expr| match expr {
+                            Expression::Symbol(symbol) => symbol,
+                            _ => String::from("nope"),
+                        })
+                        .collect();
+
+                    stack.push_value(symbol, Value::Function(
+                        Function::new(
+                            stack.clone(),
+                            arguments,
+                            func_body
+                        )
+                    ));
+                }
             }
 
-            stack.pop_return()
+            stack.push_frame(); // TODO: push value to frames below top
+
+            Value::Null
         }
     );
 }

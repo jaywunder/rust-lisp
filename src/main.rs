@@ -1,7 +1,8 @@
-#![feature(box_syntax, box_patterns, fn_traits, nll, use_nested_groups, iterator_step_by)]
+#![feature(box_syntax, box_patterns, fn_traits, nll, iterator_step_by)]
 #![allow(unused_macros)]
 #[macro_use]
 extern crate nom;
+extern crate cactus;
 
 mod ast;
 mod eval;
@@ -17,7 +18,9 @@ macro_rules! run_program {
 
         let mut stack = eval::types::CallStack::new();
 
-        let parse_result = expr($program);
+        stack.top().borrow_mut().scope.insert(String::from("uhh"), ast::types::Value::Number(42f32));
+
+        let parse_result = debug_expr($program);
 
         println!("Program:\n{}\n", String::from_utf8($program.to_vec()).unwrap());
 
@@ -28,11 +31,13 @@ macro_rules! run_program {
             eval::eval::eval(b, &mut stack);
             println!("\nReturns:\n{:?}", stack.pop_return());
         }
+        // else if let nom::IResult::Error(e) = parse_result {
+        //     println!("{:?}", e);
+        // }
 
         println!("{}", DASHES);
     };
 }
-
 
 fn main() {
 
@@ -41,15 +46,17 @@ fn main() {
     run_program!(b"(plus 2 2)");
     run_program!(b"(print 2 2)");
     // run_program!(b"(print \"null:\" nothing)");
-    // run_program!(b"(let a 1)");
+    run_program!(b"(let a 1 b 1)");
+    run_program!(b"(let a 1)");
+    run_program!(b"(let a 1)");
     // run_program!(b"(let a 1 b 2)");
     // run_program!(br#"(let a 1 b "hey")"#);
     // run_program!(br#"(if true (print "wow it works") (print "fucking dammit"))"#);
     run_program!(br#"(if
-        (== 1 2) (print "oh boy no no no")
-        (== 1 1) (print "wow it works")
+        false (print "oh boy no no no")
+        true (print "wow it works")
         (print "heckin darn"))"#);
-    // run_program!(br#"(if 
+    // run_program!(br#"(if
     // true (plus 1 1)
     // false (print "wow it works")
     // "fucking NICE")"#);
@@ -59,45 +66,80 @@ fn main() {
     (plus 1 1)
     (plus 2 2)
     )"#);
-    
-    run_program!(br#"
-    (do
-        (defun closure () (do
-            (let a 0)
-            (defun incA (n) (let a (do
-                (plus a n)
-                a
-            ))
+
+    run_program!(br#"(do
+        (let a 1)
+        (print "printing a")
+        (print a)
+        (func hello (arg1 arg2) (do
+            (print "hello functions!")
         ))
 
-        (let thing (closure))
-        (print "a = " (thing 1))
-        (print "a = " (thing 2))
-        (print "a = " (thing 3))
-        (print "a = " (thing 4))
-    )
-    "#);
+        (do (do (do (hello 1 2))))
+        (do (do (do (hello 1 2))))
+    )"#);
 
-    /*
-    global
-    |         | thing
-    closure   
-    | a incA
-    incA
-    n
+    // THE TOUGH-Y
+    // run_program!(br#"(do
+    //     (let a 1)
+    //     (print "printing a")
+    //     (print a)
+    //
+    //     (func returnfunc (arg1) (print "returnfunc"))
+    //
+    //     (func hello (arg1 arg2) (do
+    //         (set a (plus a 1))
+    //         (print "hello functions!")
+    //
+    //         (func inner (n) (do
+    //             (set a (plus a n))
+    //         ))
+    //
+    //         returnfunc
+    //     ))
+    //
+    //     (hello 1 2)
+    //     (print a)
+    //     (do (do (do (hello 1 2))))
+    //     (print a)
+    //     (hello 1 2)
+    // )"#);
 
-    
-    */
+    // run_program!(br#"(do
+    //     (let b 1)
+    //     (print b)
+    //     (func closure (arg) (do
+    //         (let a 0)
+    //         (func incA (n) (do
+    //             (set a (plus a n))
+    //         ))
+    //         incA
+    //     ))
+    //     (print b)
+    //     (let thing (closure 1))
+    //     (print "a = " (thing 1))
+    //     (print "a = " (thing 2))
+    //     (print "a = " (thing 3))
+    //     (print "a = " (thing 4))
+    // )"#);
 
-
-    // run_program!(b"(switch () (case () ())) ");
-
-
-
-
-
-
-
+    // run_program!(br#"
+    // (do
+    //     (defun closure () (do
+    //         (let a 0)
+    //         (defun incA (n) (let a (do
+    //             (plus a n)
+    //             a
+    //         ))
+    //     ))
+    //
+    //     (let thing (closure))
+    //     (print "a = " (thing 1))
+    //     (print "a = " (thing 2))
+    //     (print "a = " (thing 3))
+    //     (print "a = " (thing 4))
+    // )
+    // "#);
 
     // let thing = expr(b"(hey woahs woahs (woah wow.wow) 42 3.14 null \"hey there\" what.what)");
     // let thing2 = program(b"(hey woahs woahs (woah wow.wow) 42 3.14 null \"hey there\" what.what)(mhm yeah)");
@@ -133,4 +175,35 @@ fn main() {
     // }
     //
     // assert_eq!(),  IResult::Done(&b[])
+}
+
+#[test]
+fn test_cactus() {
+    let mut main = eval::cactus::Cactus::new();
+    use std::cell::RefCell;
+    assert!(main.is_empty());
+
+    main = main.push(0);
+    assert_eq!(main.pop().unwrap(), 0);
+
+    main = main.push(0);
+    main = main.push(1);
+    main = main.push(2);
+
+    assert_eq!(main.len(), 3);
+
+    let mut other0 = main.push(3);
+    let mut other1 = main.push(10);
+
+    println!("{:?}", main[0]);
+    println!("{:?}", main[1]);
+    println!("{:?}", main[2]);
+    println!("{:?}", other0.peek());
+    println!("{:?}", other1.peek());
+
+    other0.pop();
+    // other0.pop();
+    // other0.pop();
+
+    println!("{:?}", main[2]);
 }

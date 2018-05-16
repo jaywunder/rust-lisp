@@ -1,46 +1,42 @@
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
 
+use std::cell::RefCell;
 use ast::types::*;
-// use eval::Frame;
-
-#[derive(Clone)]
-pub enum ValueOrigin {
-    Static(String),  // rust fn
-    Dynamic(), // lisp fn
-}
+use eval::{ types::{Frame, CallStack}, cactus::Cactus, eval::eval };
 
 #[derive(Clone)]
 pub struct Function {
-    // frame: Frame,
-    // arguments: Vec<Argument>,
-    function: ValueOrigin,
+    pub local_stack: RefCell<CallStack>,
+    pub arguments: Vec<Symbol>,
+    pub exprs: Vec<Expression>,
 }
 
 impl Function {
-    fn new(
-        // frame: Frame,
-        // arguments: Vec<Argument>,
-        function: ValueOrigin
-    ) -> Function {
+    pub fn new(local_stack: CallStack, arguments: Vec<Symbol>, exprs: Vec<Expression>) -> Function {
         Function {
-            // frame,
-            // arguments,
-            function,
+            local_stack: RefCell::new(local_stack),
+            arguments, exprs
         }
     }
 
-    // pub fn call(&self, arguments: Vec<Value>) -> Value {
-    // // pub fn call(&self, this: &mut Value) -> Value {
-    //     match &self.function {
-    //         ValueOrigin::Static(ref func) => func(arguments)
-    //     }
-    //
-    //
-    //
-    //     // Value::Number(42 as f32)
-    // }
-}
+    pub fn call(&self, arguments: Vec<Value>) -> Value {
 
-pub struct Argument {
-    pub symbol: Symbol
+        // println!("WOWOWOWOWOWOWOW calling that function!");
+
+        let mut local_stack = self.local_stack.borrow_mut();
+
+        local_stack.push_frame();
+
+        for i in 0..self.arguments.len() {
+            local_stack.push_value(self.arguments[i].clone(), arguments[i].clone());
+        }
+
+        for i in 0..self.exprs.len() {
+            eval(self.exprs[i].clone(), &mut local_stack);
+            let value = local_stack.pop_return();
+            local_stack.top().borrow_mut().returns = value;
+        }
+
+        local_stack.pop_return()
+    }
 }
