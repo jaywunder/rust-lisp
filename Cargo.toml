@@ -1,6 +1,6 @@
 [package]
 authors = ["Jacob Wunder <jacob@jacobwunder.com>"]
-name = "rust-lisp"
+name = "stutter-rs"
 version = "0.1.0"
 
 [dependencies]
