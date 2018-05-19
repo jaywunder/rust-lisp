@@ -2,6 +2,11 @@
 authors = ["Jacob Wunder <jacob@jacobwunder.com>"]
 name = "stutter-rs"
 version = "0.1.0"
+description = "A lisp made by Jacob Wunder to learn how to make programming languages"
+license = "MIT"
+license-file = "LICENSE.md"
+homepage = "http://jacobwunder.com/stutter-rs"
+repository = "https://github.com/jaywunder/rust-lisp"
 
 [dependencies]
 nom = "^4"
