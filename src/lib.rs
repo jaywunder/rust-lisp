@@ -13,6 +13,18 @@ mod macros;
 
 use colored::*;
 use ast::*;
-use types::Value;
+pub use types::Value;
 
 use eval::eval::eval;
+
+pub fn run_program(program: String) -> Value {
+    let mut stack = eval::types::CallStack::new();
+    let parse_result = debug_expr(program.as_bytes());
+
+    if let Ok((_a, b)) = parse_result {
+        eval::eval::eval(b, &mut stack);
+        return stack.pop_return()
+    }
+
+    Value::Null
+}
