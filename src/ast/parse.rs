@@ -19,15 +19,15 @@ named!(pub program<Program>, fold_many0!(ws!(expr), Vec::new(), |mut acc: Progra
 named!(pub expr<Expression>,
     alt!(
         do_parse!(
-            n: tag!("null") >>
+            _n: tag!("null") >>
             (Expression::Value(Value::Null))
         ) |
         do_parse!(
-            n: tag!("true") >>
+            _n: tag!("true") >>
             (Expression::Value(Value::Boolean(true)))
         ) |
         do_parse!(
-            n: tag!("false") >>
+            _n: tag!("false") >>
             (Expression::Value(Value::Boolean(false)))
         ) |
         do_parse!(
